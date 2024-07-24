@@ -1,9 +1,9 @@
-from rest_framework import generics
+from rest_framework import generics, viewsets
 from rest_framework.response import Response
 from .serializers import UserSerializer, UserLoginSerializer, MyTokenObtainPairSerializer
-from rest_framework import viewsets
-from .models import Product, Category
-from .serializers import ProductSerializer, CategorySerializer
+from .models import Product, Category, Order
+from .serializers import ProductSerializer, CategorySerializer, OrderSerializer
+from rest_framework.permissions import IsAuthenticated
 
 class UserCreateAPIView(generics.CreateAPIView):
     serializer_class = UserSerializer
@@ -27,3 +27,24 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    
+    
+    
+
+
+
+class OrderViewSet(viewsets.ModelViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class OrderHistoryAPIView(generics.ListAPIView):
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]  # To Ensure only authenticated users can access this
+
+    def get_queryset(self):
+        user = self.request.user
+        #print(f"Authenticated user: {user}, ID: {user.id}")  
+        return Order.objects.filter(user=user)
