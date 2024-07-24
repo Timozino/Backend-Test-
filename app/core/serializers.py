@@ -57,6 +57,7 @@ class UserLoginSerializer(serializers.Serializer):
 
 
 
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
@@ -65,18 +66,26 @@ class CategorySerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = '__all__'
-        
-        
-        
+        fields = ['id', 'name', 'description', 'price', 'category']
+
 class OrderProductSerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True) 
+    product_id = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), write_only=True)
+
     class Meta:
         model = OrderProduct
-        fields = '__all__'
+        fields = ['product', 'product_id', 'quantity']
 
 class OrderSerializer(serializers.ModelSerializer):
-    products = OrderProductSerializer(many=True)
+    products = OrderProductSerializer(source='orderproduct_set', many=True)  # Use the reverse relation name
 
     class Meta:
         model = Order
-        fields = '__all__'
+        fields = ['id', 'user', 'products', 'date']
+
+    def create(self, validated_data):
+        products_data = validated_data.pop('orderproduct_set')
+        order = Order.objects.create(**validated_data)
+        for product_data in products_data:
+            OrderProduct.objects.create(order=order, **product_data)
+        return order
