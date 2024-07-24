@@ -4,6 +4,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import CategoryViewSet, ProductViewSet
+from .views import OrderViewSet, OrderHistoryAPIView
+
+
 
 
 
@@ -23,3 +26,8 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
 
+urlpatterns += [
+    path('order-history/', OrderHistoryAPIView.as_view(), name='order-history'),
+]
+
+router.register(r'orders', OrderViewSet)
